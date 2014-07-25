@@ -25,7 +25,7 @@ set i18n=module\i18n.inc.bat
 
 
 :: disallow invalid characters in the path (otherwise cmake fails configuration)
-for /f "delims=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:\-_" %%a in ("%CURRENT_PATH%") do set invalid_path=true
+for /f "delims=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:\-_." %%a in ("%CURRENT_PATH%") do set invalid_path=true
 if [%invalid_path%]==[true] (
 	echo.
 	call %i18n% 0_0
@@ -40,9 +40,6 @@ if [%invalid_path%]==[true] (
 :: ----------- VARIABLES ------------
 @set URL_UPDATE=https://raw.githubusercontent.com/HarpyWar/pvpgn-magic-builder/master/
 
-:: path where this batch placed
-@set CUR_PATH=%~dp0%~1
-
 @set PVPGN_SOURCE=source\
 @set PVPGN_BUILD=build\
 @set PVPGN_RELEASE=release\
@@ -51,7 +48,7 @@ if [%invalid_path%]==[true] (
 
 @set ZLIB_PATH=module\include\zlib\1.2.8\
 @set LUA_PATH=module\include\lua\5.1\
-@set ATLMFC_INCLUDE_PATH=%CUR_PATH%module\include\atlmfc\
+@set ATLMFC_INCLUDE_PATH=%CURRENT_PATH%module\include\atlmfc\
 
 
 :: PARAMETERS TO REBUILD
@@ -243,7 +240,7 @@ if [%PARAM_REBUILD%]==[] (
 		:: download source.zip
 		module\autoupdate\wget.exe -O source.zip --no-check-certificate %PVPGN_ZIP% %_zip_log%
 		:: extract files into current directory (pvpgn-master directory is in archive)
-		module\autoupdate\7z.exe x source.zip -y %_zip_log%
+		module\autoupdate\unzip.exe -o source.zip %_zip_log%
 		:: copy files from pvpgn-master to source
 		xcopy /E /R /K /Y pvpgn-master source\ %_zip_log%
 		:: remove pvpgn-master
@@ -298,8 +295,13 @@ IF NOT EXIST "%PVPGN_BUILD%pvpgn.sln" echo. & call %i18n% 1_16 & goto THEEND
 
 :: vcexpress include dir
 set INCLUDE=%ATLMFC_INCLUDE_PATH%;%INCLUDE%
-:: use environments is different on each visual studio
-if ["%VSVER%"]==["v100"] ( set useEnv=UseEnv=true) else ( set useEnv=VCBuildUseEnvironment=true)
+
+:: use environments is different starting from version 2010
+if not ["%VSVER%"]==["v71"] if not ["%VSVER%"]==["v80"] if not ["%VSVER%"]==["v90"] ( 
+	set useEnv=UseEnv=true
+) else (
+	set useEnv=VCBuildUseEnvironment=true
+)
 
 :: vars correction from the vcvars32.bat
 if ["%FrameworkDir%"]==[""] (

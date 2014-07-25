@@ -16,12 +16,12 @@ set _vs_choice=0
 set /a _vs_count=0
 
 :: fill array with installed vs
-set _vs_num=1& if not ["%VS71COMNTOOLS%"]==[""] if exist "%VS71COMNTOOLS%..\IDE\devenv.exe" set _vs_installed=%_vs_installed%!_vs_num! & set /a _vs_count+=1 & set _vs_choice=!_vs_num!
-set _vs_num=2& if not ["%VS80COMNTOOLS%"]==[""] if exist "%VS80COMNTOOLS%..\IDE\devenv.exe" set _vs_installed=%_vs_installed%!_vs_num! & set /a _vs_count+=1 & set _vs_choice=!_vs_num!
-set _vs_num=3& if not ["%VS90COMNTOOLS%"]==[""] if exist "%VS90COMNTOOLS%..\IDE\devenv.exe" set _vs_installed=%_vs_installed%!_vs_num! & set /a _vs_count+=1 & set _vs_choice=!_vs_num!
-set _vs_num=4& if not ["%VS100COMNTOOLS%"]==[""] if exist "%VS100COMNTOOLS%..\IDE\devenv.exe" set _vs_installed=%_vs_installed%!_vs_num! & set /a _vs_count+=1 & set _vs_choice=!_vs_num!
-set _vs_num=5& if not ["%VS110COMNTOOLS%"]==[""] if exist "%VS110COMNTOOLS%..\IDE\devenv.exe" set _vs_installed=%_vs_installed%!_vs_num! & set /a _vs_count+=1 & set _vs_choice=!_vs_num!
-set _vs_num=6& if not ["%VS120COMNTOOLS%"]==[""] if exist "%VS120COMNTOOLS%..\IDE\devenv.exe" set _vs_installed=%_vs_installed%!_vs_num! & set /a _vs_count+=1 & set _vs_choice=!_vs_num!
+set VSCOMNTOOLS=%VS71COMNTOOLS%& @call :init_vs 1
+set VSCOMNTOOLS=%VS80COMNTOOLS%& @call :init_vs 2
+set VSCOMNTOOLS=%VS90COMNTOOLS%& @call :init_vs 3
+set VSCOMNTOOLS=%VS100COMNTOOLS%& @call :init_vs 4
+set VSCOMNTOOLS=%VS110COMNTOOLS%& @call :init_vs 5
+set VSCOMNTOOLS=%VS120COMNTOOLS%& @call :init_vs 6
 
 :: if no vs found
 if %_vs_count% equ 0 set VS_NOT_INSTALLED=true& goto :eof
@@ -60,9 +60,9 @@ if %_vs_count% gtr 1 (
 if [%_vs_choice%]==[1] set VSCOMNTOOLS=%VS71COMNTOOLS%& set GENERATOR=Visual Studio 7 .NET 2003& set VSVER=v71
 if [%_vs_choice%]==[2] set VSCOMNTOOLS=%VS80COMNTOOLS%& set GENERATOR=Visual Studio 8 2005& set VSVER=v80
 if [%_vs_choice%]==[3] set VSCOMNTOOLS=%VS90COMNTOOLS%& set GENERATOR=Visual Studio 9 2008& set VSVER=v90
-if [%_vs_choice%]==[4] set VSCOMNTOOLS=%VS100COMNTOOLS%& set GENERATOR=Visual Studio 10& set VSVER=v100
-if [%_vs_choice%]==[5] set VSCOMNTOOLS=%VS110COMNTOOLS%& set GENERATOR=Visual Studio 11& set VSVER=v110
-if [%_vs_choice%]==[6] set VSCOMNTOOLS=%VS120COMNTOOLS%& set GENERATOR=Visual Studio 12& set VSVER=v120
+if [%_vs_choice%]==[4] set VSCOMNTOOLS=%VS100COMNTOOLS%& set GENERATOR=Visual Studio 10 2010& set VSVER=v100
+if [%_vs_choice%]==[5] set VSCOMNTOOLS=%VS110COMNTOOLS%& set GENERATOR=Visual Studio 11 2012& set VSVER=v110
+if [%_vs_choice%]==[6] set VSCOMNTOOLS=%VS120COMNTOOLS%& set GENERATOR=Visual Studio 12 2013& set VSVER=v120
 set PARAM_VS=%_vs_choice%
 
 call %i18n% 1_2 "%GENERATOR%"
@@ -81,4 +81,16 @@ goto :eof
 	set _result=!_str:~%2,%3!
 	exit /b 0
 	
+:init_vs
+	set found=false
+	:: check for exist full visual studio ...
+	if exist "!VSCOMNTOOLS!..\IDE\devenv.exe" set found=true
+	:: ... or express version
+	if exist "!VSCOMNTOOLS!..\IDE\VCExpress.exe" set found=true
+	if exist "!VSCOMNTOOLS!..\IDE\WDExpress.exe" set found=true
 	
+	if %found%==true (
+		set _vs_installed=!_vs_installed!%1 
+		set /a _vs_count+=1 & set _vs_choice=%1
+	)
+	exit /b 0
